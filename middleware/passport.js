@@ -1,48 +1,49 @@
-//imports
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const morgan = require("morgan");
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const LocalStrategy = require("passport-local").Strategy;
+const JWTStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
 const dotenv = require("dotenv");
-const connectDB = require("./database.js");
-const notFoundHandler = require("./middleware/notFoundHandler");
-const errorHandler = require("./middleware/errorHandler.js");
-
-const passport = require("passport");
-const path = require("path");
-const {
-  localStrategy,
-  jwtStrategy,
-  JwtStrategy,
-} = require("./middleware/passport");
-
-//init
-const PORT = process.env.PORT || 10000;
 dotenv.config();
-const app = express();
 
-// Middleware
-app.use(cors());
-app.use(morgan("dev"));
-app.use(express.json());
-passport.use("local", localStrategy);
-passport.use("jwt", JwtStrategy);
+const localStrategy = new LocalStrategy(
+  {
+    usernameField: "username",
+    passwordField: "password",
+  },
+  async (username, password, done) => {
+    try {
+      const foundUser = await User.findOne({ username: username }); //find the user
+      if (!foundUser)
+        return done({ message: "Username or password incorrect" });
+      const isMatch = await bcrypt.compare(password, foundUser.password); //check password
+      if (!isMatch) return done({ message: "Username or password incorrect" });
+      return done(null, foundUser); //req.user //go to controller if all's good
+    } catch (error) {
+      return done(error);
+    }
+  }
+);
 
-// MongoDB connection
-connectDB();
+const JwtStrategy = new JWTStrategy(
+  {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET,
+  },
+  async (payload, done) => {
+    try {
+      const user = await User.findById(payload.id);
+      if (!user) return done({ messsage: "User is not Found" });
 
-// Routes
+      const expiry = new Date(payload.exp * 1000); // It converts the expiration timestamp from the JWT (which is in seconds) to millisecond
+      const now = new Date();
+      if (now > expiry) return done({ message: "Token expired" });
 
-app.use("/media", express.static(path.join(__dirname, "media")));
+      return done(null, user); //req.user
+    } catch (error) {
+      return done(error);
+    }
+  }
+);
 
-// Not Found Handling middleware
-
-app.use(notFoundHandler);
-
-// Error handling middleware
-app.use(errorHandler);
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = { localStrategy, JwtStrategy };
