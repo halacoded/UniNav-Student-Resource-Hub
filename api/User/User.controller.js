@@ -96,10 +96,16 @@ exports.signin = async (req, res, next) => {
 // .populate("following", "username email profileImage");
 exports.getMe = async (req, res, next) => {
   try {
-    console.error("hi");
     const user = await User.findById(req.user._id)
       .populate("followers", "username email profileImage backgroundImage")
-      .populate("following", "username email profileImage backgroundImage");
+      .populate("following", "username email profileImage backgroundImage")
+      .populate({
+        path: "courses",
+        populate: {
+          path: "professor",
+          select: "name profileImage",
+        },
+      });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

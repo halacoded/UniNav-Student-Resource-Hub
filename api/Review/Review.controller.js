@@ -81,19 +81,34 @@ exports.updateReview = async (req, res) => {
   }
 };
 
-exports.deleteReview = async (req, res) => {
+exports.deleteReview = async (req, res, next) => {
   try {
-    const review = await Review.findById(req.params.id);
-    if (!review) {
+    const deletedReview = await Review.findByIdAndDelete(req.params.id);
+    if (!deletedReview) {
       return res.status(404).json({ message: "Review not found" });
     }
 
-    await review.remove();
-    res.status(200).json({ message: "Review deleted successfully" });
-  } catch (err) {
-    console.error("Delete review error:", err);
-    res
-      .status(500)
-      .json({ message: "Error deleting review", error: err.message });
+    const user = deletedReview.user;
+    const professor = deletedReview.professor;
+    const course = deletedReview.course;
+
+    // Remove the review reference from the user
+    await User.findByIdAndUpdate(user, {
+      $pull: { reviews: deletedReview._id },
+    });
+
+    // Remove the review reference from the professor
+    await Professor.findByIdAndUpdate(professor, {
+      $pull: { reviews: deletedReview._id },
+    });
+
+    // Remove the review reference from the course
+    await Course.findByIdAndUpdate(course, {
+      $pull: { reviews: deletedReview._id },
+    });
+
+    return res.status(200).json({ message: "Review deleted successfully" });
+  } catch (error) {
+    next(error);
   }
 };

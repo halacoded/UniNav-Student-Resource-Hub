@@ -1,5 +1,8 @@
 const Professor = require("../../models/Professor");
-const user = require("../../models/User");
+const User = require("../../models/User");
+const Review = require("../../models/Review");
+const Course = require("../../models/Course");
+
 exports.createProfessor = async (req, res) => {
   try {
     const { name, courses, reviews } = req.body;
@@ -13,6 +16,17 @@ exports.createProfessor = async (req, res) => {
     });
 
     await newProfessor.save();
+
+    await Course.updateMany(
+      { _id: { $in: courses } },
+      { $push: { professor: newProfessor._id } }
+    );
+
+    await Review.updateMany(
+      { _id: { $in: reviews } },
+      { $push: { professor: newProfessor._id } }
+    );
+
     res.status(201).json({
       message: "Professor created successfully",
       professor: newProfessor,
@@ -82,35 +96,25 @@ exports.updateProfessor = async (req, res) => {
       .json({ message: "Error updating professor", error: err.message });
   }
 };
-
-const deleteReview = async (req, res, next) => {
+exports.deleteProfessor = async (req, res) => {
   try {
-    const deletedReview = await Review.findByIdAndDelete(req.params.id);
-    if (!deletedReview) {
-      return res.status(404).json({ message: "Review not found" });
+    const { id } = req.params;
+
+    const deletedProfessor = await Professor.findByIdAndDelete(id);
+
+    if (!deletedProfessor) {
+      return res.status(404).json({ message: "Professor not found" });
     }
 
-    const user = deletedReview.user;
-    const professor = deletedReview.professor;
-    const course = deletedReview.course;
+    await Course.updateMany({ professors: id }, { $pull: { professors: id } });
 
-    // Remove the review reference from the user
-    await User.findByIdAndUpdate(user, {
-      $pull: { reviews: deletedReview._id },
-    });
+    await Review.updateMany({ professor: id }, { $pull: { professor: id } });
 
-    // Remove the review reference from the professor
-    await Professor.findByIdAndUpdate(professor, {
-      $pull: { reviews: deletedReview._id },
-    });
-
-    // Remove the review reference from the course
-    await Course.findByIdAndUpdate(course, {
-      $pull: { reviews: deletedReview._id },
-    });
-
-    return res.status(200).json({ message: "Review deleted successfully" });
-  } catch (error) {
-    next(error);
+    res.status(200).json({ message: "Professor deleted successfully" });
+  } catch (err) {
+    console.error("Delete professor error:", err);
+    res
+      .status(500)
+      .json({ message: "Error deleting professor", error: err.message });
   }
 };

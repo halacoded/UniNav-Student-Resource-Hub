@@ -1,17 +1,37 @@
+const Professor = require("../../models/Professor");
+const User = require("../../models/User");
+const Review = require("../../models/Review");
 const Course = require("../../models/Course");
 
 exports.createCourse = async (req, res) => {
   try {
-    const { name, users, reviews, professors } = req.body;
+    const { name, users, reviews, professor } = req.body;
 
     const newCourse = new Course({
       name,
       users,
       reviews,
-      professors,
+      professor,
     });
 
     await newCourse.save();
+
+    await User.updateMany(
+      { _id: { $in: users } },
+      { $push: { courses: newCourse._id } }
+    );
+
+    await Review.updateMany(
+      { _id: { $in: reviews } },
+      { $push: { course: newCourse._id } }
+    );
+
+    await Professor.findByIdAndUpdate(
+      professor,
+      { $push: { courses: newCourse._id } },
+      { new: true }
+    );
+
     res
       .status(201)
       .json({ message: "Course created successfully", course: newCourse });
@@ -28,7 +48,7 @@ exports.getCourses = async (req, res) => {
     const courses = await Course.find()
       .populate("users")
       .populate("reviews")
-      .populate("professors");
+      .populate("professor");
     res.status(200).json(courses);
   } catch (err) {
     console.error("Get courses error:", err);
@@ -43,7 +63,7 @@ exports.getCourseById = async (req, res) => {
     const course = await Course.findById(req.params.id)
       .populate("users")
       .populate("reviews")
-      .populate("professors");
+      .populate("professor");
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -58,7 +78,7 @@ exports.getCourseById = async (req, res) => {
 
 exports.updateCourse = async (req, res) => {
   try {
-    const { name, users, reviews, professors } = req.body;
+    const { name, users, reviews, professor } = req.body;
 
     const course = await Course.findById(req.params.id);
     if (!course) {
@@ -68,7 +88,7 @@ exports.updateCourse = async (req, res) => {
     course.name = name || course.name;
     course.users = users || course.users;
     course.reviews = reviews || course.reviews;
-    course.professors = professors || course.professors;
+    course.professor = professor || course.professor;
 
     await course.save();
     res.status(200).json({ message: "Course updated successfully", course });
