@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
     courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
-    reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
+    resources: [{ type: Schema.Types.ObjectId, ref: "Resource" }],
   },
   { timestamps: true }
 );

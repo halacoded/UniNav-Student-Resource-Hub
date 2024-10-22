@@ -7,11 +7,8 @@ const commentSchema = new Schema(
       ref: "User",
       required: true,
     },
-    review: {
-      type: Schema.Types.ObjectId,
-      ref: "Review",
-      required: true,
-    },
+    course: { type: Schema.Types.ObjectId, ref: "Course" },
+    professor: { type: Schema.Types.ObjectId, ref: "Professor" },
     content: {
       type: String,
       required: true,
@@ -28,12 +25,18 @@ const commentSchema = new Schema(
       ref: "Comment",
       default: null,
     },
+    commentType: {
+      type: String,
+      enum: ["course", "professor"],
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-// Index for efficient querying of comments by recipe and creation date
-commentSchema.index({ recipe: 1, createdAt: -1 });
+// Index for efficient querying of comments by course/professor and creation date
+commentSchema.index({ course: 1, createdAt: -1 });
+commentSchema.index({ professor: 1, createdAt: -1 });
 
 const Comment = model("Comment", commentSchema);
 

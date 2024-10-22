@@ -18,7 +18,8 @@ const usersRouter = require("./api/User/User.router.js");
 const commentRouter = require("./api//Comment/Comment.router.js");
 const professorRouter = require("./api/Professor/Professor.router.js");
 const courseRouter = require("./api/Courses/Courses.router.js");
-const reviewRouter = require("./api/Review/Review.router.js");
+const resourceRouter = require("./api/Resource/Resource.router.js");
+
 //init
 const PORT = process.env.PORT || 80000;
 dotenv.config();
@@ -38,7 +39,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/professors", professorRouter);
 app.use("/api/courses", courseRouter);
-app.use("/api/reviews", reviewRouter);
+app.use("/api/resources", resourceRouter);
 app.use("/media", express.static(path.join(__dirname, "media")));
 // Not Found Handling middleware
 

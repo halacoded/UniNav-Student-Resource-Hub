@@ -1,14 +1,22 @@
 const Comment = require("../../models/Comment");
 const Course = require("../../models/Course");
+const Professor = require("../../models/Professor");
 
-// Get all comments for a specific course
-exports.getCommentsForCourse = async (req, res, next) => {
+// Get all comments for a specific course or professor
+exports.getComments = async (req, res, next) => {
   try {
-    const { courseId } = req.params;
-    const comments = await Comment.find({
-      course: courseId,
-      parentComment: null,
-    })
+    const { type, id } = req.params;
+    const filter = { parentComment: null };
+
+    if (type === "course") {
+      filter.course = id;
+    } else if (type === "professor") {
+      filter.professor = id;
+    } else {
+      return res.status(400).json({ message: "Invalid type" });
+    }
+
+    const comments = await Comment.find(filter)
       .sort("-createdAt")
       .populate("user", "username")
       .populate({
@@ -25,28 +33,44 @@ exports.getCommentsForCourse = async (req, res, next) => {
 // Create a new comment
 exports.createComment = async (req, res, next) => {
   try {
-    const { courseId } = req.params;
+    const { type, id } = req.params;
     const { content } = req.body;
     const userId = req.user._id;
 
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
+    let newComment;
+    if (type === "course") {
+      const course = await Course.findById(id);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      newComment = new Comment({
+        user: userId,
+        course: id,
+        content,
+        commentType: "course",
+      });
+      await Course.findByIdAndUpdate(id, {
+        $push: { comments: newComment._id },
+      });
+    } else if (type === "professor") {
+      const professor = await Professor.findById(id);
+      if (!professor) {
+        return res.status(404).json({ message: "Professor not found" });
+      }
+      newComment = new Comment({
+        user: userId,
+        professor: id,
+        content,
+        commentType: "professor",
+      });
+      await Professor.findByIdAndUpdate(id, {
+        $push: { comments: newComment._id },
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid type" });
     }
 
-    const newComment = new Comment({
-      user: userId,
-      course: courseId,
-      content,
-    });
-
     await newComment.save();
-
-    // Update the course's comments array
-    await Course.findByIdAndUpdate(courseId, {
-      $push: { comments: newComment._id },
-    });
-
     res.status(201).json(newComment);
   } catch (error) {
     next(error);
@@ -72,10 +96,16 @@ exports.deleteComment = async (req, res, next) => {
 
     await Comment.findByIdAndDelete(commentId);
 
-    // Update the course's comments array
-    await Course.findByIdAndUpdate(comment.course, {
-      $pull: { comments: commentId },
-    });
+    // Update the course or professor's comments array
+    if (comment.commentType === "course") {
+      await Course.findByIdAndUpdate(comment.course, {
+        $pull: { comments: commentId },
+      });
+    } else if (comment.commentType === "professor") {
+      await Professor.findByIdAndUpdate(comment.professor, {
+        $pull: { comments: commentId },
+      });
+    }
 
     // Also delete all replies to this comment
     await Comment.deleteMany({ parentComment: commentId });
@@ -85,10 +115,9 @@ exports.deleteComment = async (req, res, next) => {
     next(error);
   }
 };
-
-// Reply to a comment
 exports.replyToComment = async (req, res, next) => {
   try {
+    console.log("HI");
     const { commentId } = req.params;
     const { content } = req.body;
     const userId = req.user._id;
@@ -102,9 +131,11 @@ exports.replyToComment = async (req, res, next) => {
     // Create the new reply
     const newReply = new Comment({
       user: userId,
-      course: parentComment.course,
       content,
       parentComment: commentId,
+      commentType: parentComment.commentType,
+      course: parentComment.course,
+      professor: parentComment.professor,
     });
 
     // Save the new reply
@@ -115,10 +146,16 @@ exports.replyToComment = async (req, res, next) => {
       $push: { replies: newReply._id },
     });
 
-    // Update the course's comments array
-    await Course.findByIdAndUpdate(parentComment.course, {
-      $push: { comments: newReply._id },
-    });
+    // Update the course or professor's comments array
+    if (parentComment.commentType === "course") {
+      await Course.findByIdAndUpdate(parentComment.course, {
+        $push: { comments: newReply._id },
+      });
+    } else if (parentComment.commentType === "professor") {
+      await Professor.findByIdAndUpdate(parentComment.professor, {
+        $push: { comments: newReply._id },
+      });
+    }
 
     // Populate user information for the response
     await newReply.populate("user", "username");
@@ -126,11 +163,7 @@ exports.replyToComment = async (req, res, next) => {
     res.status(201).json(newReply);
   } catch (error) {
     console.error("Error in replyToComment:", error);
-    if (error.name === "ValidationError") {
-      return res
-        .status(400)
-        .json({ message: "Invalid input", details: error.errors });
-    }
+
     next(error);
   }
 };

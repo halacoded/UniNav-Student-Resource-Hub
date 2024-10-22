@@ -1,7 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const {
-  getCommentsForCourse,
+  getComments,
   createComment,
   deleteComment,
   replyToComment,
@@ -9,12 +9,12 @@ const {
 
 const commentRouter = express.Router();
 
-// Get all comments for a specific recipe
-commentRouter.get("/course/:courseId", getCommentsForCourse);
+// Get all comments for a specific course or professor
+commentRouter.get("/:type/:id", getComments);
 
 // Create a new comment
 commentRouter.post(
-  "/recipe/:recipeId",
+  "/:type/:id",
   passport.authenticate("jwt", { session: false }),
   createComment
 );
@@ -28,7 +28,7 @@ commentRouter.delete(
 
 // Reply to a comment
 commentRouter.post(
-  "/:commentId/reply",
+  "/:commentId",
   passport.authenticate("jwt", { session: false }),
   replyToComment
 );
