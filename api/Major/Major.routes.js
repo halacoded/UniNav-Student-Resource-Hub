@@ -1,11 +1,12 @@
 const express = require("express");
-const router = express.Router();
+const MajorRouter = express.Router();
+
 const { createMajor, getMajors, getMajor, updateMajor, deleteMajor } = require("./Major.controller");
 
-router.post("/", createMajor);
-router.get("/", getMajors);
-router.get("/:id", getMajor);
-router.put("/:id", updateMajor);
-router.delete("/:id", deleteMajor);
+MajorRouter.post("/", createMajor);
+MajorRouter.get("/", getMajors);
+MajorRouter.get("/:id", getMajor);
+MajorRouter.put("/:id", updateMajor);
+MajorRouter.delete("/:id", deleteMajor);
 
-module.exports = router;
+module.exports = MajorRouter;

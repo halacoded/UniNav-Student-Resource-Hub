@@ -41,6 +41,7 @@ app.use("/api/professors", professorRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/resources", resourceRouter);
 app.use("/api/community", communityRouter);
+app.use("/api/major", majorRouter);
 app.use("/media", express.static(path.join(__dirname, "media")));
 // Not Found Handling middleware
 
