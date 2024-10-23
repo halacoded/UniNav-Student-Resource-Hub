@@ -2,7 +2,9 @@ const Comment = require("../../models/Comment");
 const Course = require("../../models/Course");
 const Professor = require("../../models/Professor");
 
-// Get all comments for a specific course or professor
+const Community = require("../../models/Community");
+
+// Get all comments for a specific course, professor, or community
 exports.getComments = async (req, res, next) => {
   try {
     const { type, id } = req.params;
@@ -12,6 +14,8 @@ exports.getComments = async (req, res, next) => {
       filter.course = id;
     } else if (type === "professor") {
       filter.professor = id;
+    } else if (type === "community") {
+      filter.community = id;
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
@@ -66,6 +70,20 @@ exports.createComment = async (req, res, next) => {
       await Professor.findByIdAndUpdate(id, {
         $push: { comments: newComment._id },
       });
+    } else if (type === "community") {
+      const community = await Community.findById(id);
+      if (!community) {
+        return res.status(404).json({ message: "Community not found" });
+      }
+      newComment = new Comment({
+        user: userId,
+        community: id,
+        content,
+        commentType: "community",
+      });
+      await Community.findByIdAndUpdate(id, {
+        $push: { comments: newComment._id },
+      });
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
@@ -96,13 +114,17 @@ exports.deleteComment = async (req, res, next) => {
 
     await Comment.findByIdAndDelete(commentId);
 
-    // Update the course or professor's comments array
+    // Update the course, professor, or community's comments array
     if (comment.commentType === "course") {
       await Course.findByIdAndUpdate(comment.course, {
         $pull: { comments: commentId },
       });
     } else if (comment.commentType === "professor") {
       await Professor.findByIdAndUpdate(comment.professor, {
+        $pull: { comments: commentId },
+      });
+    } else if (comment.commentType === "community") {
+      await Community.findByIdAndUpdate(comment.community, {
         $pull: { comments: commentId },
       });
     }
@@ -115,9 +137,10 @@ exports.deleteComment = async (req, res, next) => {
     next(error);
   }
 };
+
+// Reply to a comment
 exports.replyToComment = async (req, res, next) => {
   try {
-    console.log("HI");
     const { commentId } = req.params;
     const { content } = req.body;
     const userId = req.user._id;
@@ -136,6 +159,7 @@ exports.replyToComment = async (req, res, next) => {
       commentType: parentComment.commentType,
       course: parentComment.course,
       professor: parentComment.professor,
+      community: parentComment.community,
     });
 
     // Save the new reply
@@ -146,13 +170,17 @@ exports.replyToComment = async (req, res, next) => {
       $push: { replies: newReply._id },
     });
 
-    // Update the course or professor's comments array
+    // Update the course, professor, or community's comments array
     if (parentComment.commentType === "course") {
       await Course.findByIdAndUpdate(parentComment.course, {
         $push: { comments: newReply._id },
       });
     } else if (parentComment.commentType === "professor") {
       await Professor.findByIdAndUpdate(parentComment.professor, {
+        $push: { comments: newReply._id },
+      });
+    } else if (parentComment.commentType === "community") {
+      await Community.findByIdAndUpdate(parentComment.community, {
         $push: { comments: newReply._id },
       });
     }
@@ -162,8 +190,6 @@ exports.replyToComment = async (req, res, next) => {
 
     res.status(201).json(newReply);
   } catch (error) {
-    console.error("Error in replyToComment:", error);
-
     next(error);
   }
 };

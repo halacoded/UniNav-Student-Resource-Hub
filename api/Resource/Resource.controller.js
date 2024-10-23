@@ -1,10 +1,10 @@
 const Resource = require("../../models/Resource");
 const Course = require("../../models/Course");
 const User = require("../../models/User");
-
+const Community = require("../../models/Community");
 exports.createResource = async (req, res) => {
   try {
-    const { title, type, course } = req.body;
+    const { title, type, course, community } = req.body;
     const userId = req.user._id;
     const url = req.file ? `/media/${req.file.filename}` : null;
 
@@ -13,6 +13,7 @@ exports.createResource = async (req, res) => {
       url,
       type,
       course,
+      community,
       createdBy: userId,
     });
 
@@ -23,7 +24,11 @@ exports.createResource = async (req, res) => {
       { $push: { resources: newResource._id } },
       { new: true }
     );
-
+    await Community.findByIdAndUpdate(
+      community,
+      { $push: { resources: newResource._id } },
+      { new: true }
+    );
     await User.findByIdAndUpdate(
       userId,
       { $push: { resources: newResource._id } },
@@ -46,6 +51,7 @@ exports.getResources = async (req, res) => {
   try {
     const resources = await Resource.find()
       .populate("course")
+      .populate("community")
       .populate("likes", "username email")
       .populate("dislikes", "username email");
     res.status(200).json(resources);
@@ -60,6 +66,7 @@ exports.getResourceById = async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id)
       .populate("course")
+      .populate("community")
       .populate("likes", "username email")
       .populate("dislikes", "username email");
     if (!resource) {
@@ -95,7 +102,11 @@ exports.deleteResource = async (req, res) => {
       { $pull: { resources: resource._id } },
       { new: true }
     );
-
+    await Community.findByIdAndUpdate(
+      resource.community,
+      { $pull: { resources: resource._id } },
+      { new: true }
+    );
     // Remove the resource from the User schema
     await User.findByIdAndUpdate(
       userId,

@@ -9,6 +9,7 @@ const commentSchema = new Schema(
     },
     course: { type: Schema.Types.ObjectId, ref: "Course" },
     professor: { type: Schema.Types.ObjectId, ref: "Professor" },
+    community: { type: Schema.Types.ObjectId, ref: "Community" },
     content: {
       type: String,
       required: true,
@@ -27,16 +28,17 @@ const commentSchema = new Schema(
     },
     commentType: {
       type: String,
-      enum: ["course", "professor"],
+      enum: ["course", "professor", "community"],
       required: true,
     },
   },
   { timestamps: true }
 );
 
-// Index for efficient querying of comments by course/professor and creation date
+// Index for efficient querying of comments by course/professor/community and creation date
 commentSchema.index({ course: 1, createdAt: -1 });
 commentSchema.index({ professor: 1, createdAt: -1 });
+commentSchema.index({ community: 1, createdAt: -1 });
 
 const Comment = model("Comment", commentSchema);
 

@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const professorSchema = new Schema({
   name: { type: String, required: true, unique: true },
+  about: { type: String, required: true },
   profileImage: { type: String, default: "" },
   courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
 
@@ -19,6 +20,7 @@ const professorSchema = new Schema({
       rating: { type: Number, required: true, min: 1, max: 5 },
     },
   ],
+  avgRating: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("Professor", professorSchema);

@@ -90,15 +90,16 @@ exports.signin = async (req, res, next) => {
   }
 };
 //USER SECTION ************************************************
-// .populate("courses")
-// .populate("reviews")
-// .populate("followers", "username email profileImage")
-// .populate("following", "username email profileImage");
+
 exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id)
       .populate("followers", "username email profileImage backgroundImage")
       .populate("following", "username email profileImage backgroundImage")
+      .populate("communities")
+      .populate("resources")
+      .populate("bookmarks")
+      .populate("awards")
       .populate({
         path: "courses",
         populate: {
@@ -110,7 +111,8 @@ exports.getMe = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    console.log("User data fetched successfully:", user._id); // Log user data fetched
+    await checkAndAddAward(user);
     res.status(200).json(user);
   } catch (error) {
     next(error);
@@ -138,10 +140,9 @@ exports.getAllUsers = async (req, res, next) => {
       .json({ message: "Error searching users", error: error.message });
   }
 };
-
 exports.updateUser = async (req, res, next) => {
   try {
-    console.log("Received file:", req.file);
+    console.log("Received files:", req.files);
     console.log("Received body:", req.body);
 
     const userId = req.user._id; // Get the user ID from the authenticated user
@@ -155,13 +156,13 @@ exports.updateUser = async (req, res, next) => {
     }
 
     // Handle profile image upload
-    if (req.file && req.file.fieldname === "profileImage") {
-      user.profileImage = req.file.path;
+    if (req.files && req.files.profileImage) {
+      user.profileImage = req.files.profileImage[0].path;
     }
 
     // Handle background image upload
-    if (req.file && req.file.fieldname === "backgroundImage") {
-      user.backgroundImage = req.file.path;
+    if (req.files && req.files.backgroundImage) {
+      user.backgroundImage = req.files.backgroundImage[0].path;
     }
 
     // Handle username update
@@ -190,7 +191,7 @@ exports.updateUser = async (req, res, next) => {
     const updatedUser = await User.findById(userId)
       .select("-password")
       .populate("courses")
-      .populate("reviews")
+      .populate("awards")
       .populate("followers", "username email profileImage backgroundImage")
       .populate("following", "username email profileImage backgroundImage");
 
@@ -301,5 +302,98 @@ exports.getFollowing = async (req, res, next) => {
     res
       .status(500)
       .json({ message: "Error getting following", error: error.message });
+  }
+};
+
+//bookmark*************************
+
+exports.addBookmark = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.bookmarks.includes(req.params.resourceId)) {
+      user.bookmarks.push(req.params.resourceId);
+      await user.save();
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.removeBookmark = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.bookmarks = user.bookmarks.filter(
+      (resourceId) => resourceId.toString() !== req.params.resourceId
+    );
+    await user.save();
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+//award logic
+const checkAndAddAward = async (user) => {
+  try {
+    console.log("Checking awards for user:", user._id); // Log user ID
+
+    if (
+      user.following &&
+      user.following.length === 1 &&
+      !user.awards.includes("First Follow")
+    ) {
+      console.log("Adding 'First Follow' award");
+      user.awards.push("First Follow");
+    }
+    if (
+      user.resources &&
+      user.resources.length === 1 &&
+      !user.awards.includes("First Upload")
+    ) {
+      console.log("Adding 'First Upload' award");
+      user.awards.push("First Upload");
+    }
+    if (
+      user.communities &&
+      user.communities.length === 1 &&
+      !user.awards.includes("First Community Join")
+    ) {
+      console.log("Adding 'First Community Join' award");
+      user.awards.push("First Community Join");
+    }
+    if (
+      user.comments &&
+      user.comments.length === 1 &&
+      !user.awards.includes("First Comment")
+    ) {
+      console.log("Adding 'First Comment' award");
+      user.awards.push("First Comment");
+    }
+    if (
+      user.profileImage &&
+      user.profileImage !== "" &&
+      !user.awards.includes("First Profile Image")
+    ) {
+      console.log("Adding 'First Profile Image' award");
+      user.awards.push("First Profile Image");
+    }
+
+    console.log("Awards before saving:", user.awards); // Log awards before saving
+    await user.save();
+    console.log("User saved successfully"); // Log after saving
+  } catch (error) {
+    console.error("Error in checkAndAddAward function:", error); // Log the error details
+    throw error; // Rethrow the error to be caught by the calling function
   }
 };

@@ -5,11 +5,12 @@ const Course = require("../../models/Course");
 const Comment = require("../../models/Comment");
 exports.createProfessor = async (req, res) => {
   try {
-    const { name, courses } = req.body;
+    const { name, about, courses } = req.body;
     const profileImage = req.file ? req.file.path : "";
 
     const newProfessor = new Professor({
       name,
+      about,
       profileImage,
       courses,
     });
@@ -68,7 +69,7 @@ exports.getProfessorById = async (req, res) => {
 
 exports.updateProfessor = async (req, res) => {
   try {
-    const { name, courses } = req.body;
+    const { name, about, courses } = req.body;
     const profileImage = req.file ? req.file.path : "";
 
     const professor = await Professor.findById(req.params.id);
@@ -77,6 +78,7 @@ exports.updateProfessor = async (req, res) => {
     }
 
     professor.name = name || professor.name;
+    professor.about = about || professor.about;
     professor.profileImage = profileImage || professor.profileImage;
     professor.courses = courses || professor.courses;
 
@@ -124,24 +126,25 @@ exports.addProfessorRating = async (req, res, next) => {
       return res.status(404).json({ message: "Professor not found" });
     }
 
-    // Check if the user has already rated the professor
     const existingRating = professor.ratings.find(
       (r) => r.user.toString() === userId.toString()
     );
     if (existingRating) {
-      existingRating.rating = rating; // Update the existing rating
+      existingRating.rating = rating;
     } else {
-      professor.ratings.push({ user: userId, rating }); // Add a new rating
+      professor.ratings.push({ user: userId, rating });
     }
 
     await professor.save();
 
-    // Calculate the average rating
     const sum = professor.ratings.reduce(
       (acc, rating) => acc + rating.rating,
       0
     );
     const averageRating = (sum / professor.ratings.length).toFixed(1);
+
+    professor.avgRating = averageRating;
+    await professor.save();
 
     res.status(200).json({ averageRating });
   } catch (error) {

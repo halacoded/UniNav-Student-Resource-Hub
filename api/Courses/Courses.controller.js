@@ -5,12 +5,14 @@ const Course = require("../../models/Course");
 
 exports.createCourse = async (req, res) => {
   try {
-    const { name, users, reviews, professor } = req.body;
+    const { name, level, about, users, professor } = req.body;
 
     const newCourse = new Course({
       name,
+      level,
+      about,
       users,
-      reviews,
+
       professor,
     });
 
@@ -43,6 +45,7 @@ exports.getCourses = async (req, res) => {
     const courses = await Course.find()
       .populate("users")
       .populate("professor")
+      .populate("avgRating")
       .populate("comments");
     res.status(200).json(courses);
   } catch (err) {
@@ -72,7 +75,7 @@ exports.getCourseById = async (req, res) => {
 
 exports.updateCourse = async (req, res) => {
   try {
-    const { name, users, professor } = req.body;
+    const { name, level, about, users, professor } = req.body;
 
     const course = await Course.findById(req.params.id);
     if (!course) {
@@ -80,6 +83,8 @@ exports.updateCourse = async (req, res) => {
     }
 
     course.name = name || course.name;
+    course.level = level || course.level;
+    course.about = about || course.about;
     course.users = users || course.users;
 
     course.professor = professor || course.professor;
@@ -111,8 +116,6 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
-//Rating retrun avg directly every time there is new rating
-
 exports.addRating = async (req, res, next) => {
   try {
     const { courseId } = req.params;
@@ -124,21 +127,22 @@ exports.addRating = async (req, res, next) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // Check if the user has already rated the course
     const existingRating = course.ratings.find(
       (r) => r.user.toString() === userId.toString()
     );
     if (existingRating) {
-      existingRating.rating = rating; // Update the existing rating
+      existingRating.rating = rating;
     } else {
-      course.ratings.push({ user: userId, rating }); // Add a new rating
+      course.ratings.push({ user: userId, rating });
     }
 
     await course.save();
 
-    // Calculate the average rating
     const sum = course.ratings.reduce((acc, rating) => acc + rating.rating, 0);
     const averageRating = (sum / course.ratings.length).toFixed(1);
+
+    course.avgRating = averageRating;
+    await course.save();
 
     res.status(200).json({ averageRating });
   } catch (error) {

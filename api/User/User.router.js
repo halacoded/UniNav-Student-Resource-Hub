@@ -10,6 +10,8 @@ const {
   unfollowUser,
   getFollowers,
   getFollowing,
+  addBookmark,
+  removeBookmark,
 } = require("./User.controller");
 const passport = require("passport");
 const upload = require("../../middleware/multer");
@@ -41,5 +43,9 @@ usersRouter.post("/:id/follow", authenticate, followUser);
 usersRouter.post("/:id/unfollow", authenticate, unfollowUser);
 usersRouter.get("/:id/followers", getFollowers);
 usersRouter.get("/:id/following", getFollowing);
+
+// Bookmark routes
+usersRouter.post("/bookmarks/:resourceId", authenticate, addBookmark);
+usersRouter.delete("/bookmarks/:resourceId", authenticate, removeBookmark);
 
 module.exports = usersRouter;
