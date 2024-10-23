@@ -10,6 +10,7 @@ const communitySchema = new Schema({
   createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   joinRequests: [{ type: Schema.Types.ObjectId, ref: "User" }],
   profileImage: { type: String, default: "" },
+  major: { type: Schema.Types.ObjectId, ref: "Major" },
   comments: [
     {
       user: { type: Schema.Types.ObjectId, ref: "User" },

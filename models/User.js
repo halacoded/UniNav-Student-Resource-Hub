@@ -15,6 +15,7 @@ const UserSchema = new Schema(
     communities: [{ type: Schema.Types.ObjectId, ref: "Community" }],
     bookmarks: [{ type: Schema.Types.ObjectId, ref: "Resource" }],
     awards: [{ type: String }],
+    major: { type: Schema.Types.ObjectId, ref: "Major" },
   },
   { timestamps: true }
 );

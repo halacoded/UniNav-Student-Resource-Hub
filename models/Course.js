@@ -23,6 +23,7 @@ const courseSchema = new Schema({
     },
   ],
   avgRating: { type: Number, default: 0 },
+  major: { type: Schema.Types.ObjectId, ref: "Major" },
 });
 
 module.exports = mongoose.model("Course", courseSchema);

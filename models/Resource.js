@@ -21,6 +21,7 @@ const resourceSchema = new Schema({
   createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   dislikes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  major: { type: Schema.Types.ObjectId, ref: "Major" },
 });
 
 const Resource = model("Resource", resourceSchema);

@@ -6,7 +6,7 @@ const professorSchema = new Schema({
   about: { type: String, required: true },
   profileImage: { type: String, default: "" },
   courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
-
+  major: { type: Schema.Types.ObjectId, ref: "Major" },
   comments: [
     {
       user: { type: Schema.Types.ObjectId, ref: "User" },
