@@ -20,6 +20,7 @@ const professorRouter = require("./api/Professor/Professor.router.js");
 const courseRouter = require("./api/Courses/Courses.router.js");
 const resourceRouter = require("./api/Resource/Resource.router.js");
 const communityRouter = require("./api/Community/Community.router.js");
+const MajorRouter = require("./api/Major/Major.routes.js");
 //init
 const PORT = process.env.PORT || 80000;
 dotenv.config();
@@ -41,7 +42,7 @@ app.use("/api/professors", professorRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/resources", resourceRouter);
 app.use("/api/community", communityRouter);
-app.use("/api/major", majorRouter);
+app.use("/api/major", MajorRouter);
 app.use("/media", express.static(path.join(__dirname, "media")));
 // Not Found Handling middleware
 
