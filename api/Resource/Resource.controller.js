@@ -7,11 +7,11 @@ exports.createResource = async (req, res) => {
     const { title, type, course, community } = req.body;
     const userId = req.user._id;
     const url = req.file ? `/media/${req.file.filename}` : null;
-
+    const resourceTypeFound = await ResourceType.findOne({ name: type });
     const newResource = new Resource({
       title,
       url,
-      type,
+      resourceType: resourceTypeFound._id,
       course,
       community,
       createdBy: userId,

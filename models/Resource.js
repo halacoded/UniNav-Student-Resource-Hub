@@ -4,16 +4,9 @@ const { Schema, model } = mongoose;
 const resourceSchema = new Schema({
   title: { type: String, required: true },
   url: { type: String, required: true },
-  type: {
-    type: String,
-    enum: [
-      "classNote",
-      "homeWork",
-      "book",
-      "quize",
-      "bankQuestions",
-      "pastExame",
-    ],
+  resourceType: {
+    type: Schema.Types.ObjectId,
+    ref: "ResourceType",
     required: true,
   },
   community: { type: Schema.Types.ObjectId, ref: "Community" },

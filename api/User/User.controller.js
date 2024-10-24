@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const Major = require("../../models/Major");
 
 dotenv.config();
 const hashPassword = async (password) => {
@@ -57,12 +58,14 @@ exports.signup = async (req, res, next) => {
       return res.status(500).json({ message: "Error hashing password" });
     }
 
+    const majorFound = await Major.findOne({name: major})
+
     // Create new user
     const user = new User({
       username,
       email,
       password: hashedPassword,
-      major,
+      major: majorFound._id,
       profileImage: "", // Default profile image
       backgroundImage: "",
     });
