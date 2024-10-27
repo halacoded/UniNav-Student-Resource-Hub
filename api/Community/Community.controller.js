@@ -19,13 +19,22 @@ const getCommunityById = async (req, res) => {
     const community = await Community.findById(req.params.id).populate(
       "createdBy resources course followers"
     );
+    console.log(community);
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
     }
     if (!community.public && !community.followers.includes(req.user._id)) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(200).json({
+        message: "Access Denied",
+        data: {
+          name: community.name,
+          createtBy: community.createdBy,
+          followers: community.followers,
+          image: community.profileImage,
+        },
+      });
     }
-    res.json(community);
+    return res.status(200).json(community);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -222,6 +231,39 @@ const approveJoinRequest = async (req, res) => {
   }
 };
 
+const leaveCommunity = async (req, res) => {
+  const session = await Community.startSession();
+  session.startTransaction();
+  try {
+    const community = await Community.findById(req.params.id);
+    if (!community) {
+      return res.status(404).json({ error: "Community not found" });
+    }
+    if (!community.followers.includes(req.user._id)) {
+      return res.status(400).json({ error: "Not a member of this community" });
+    }
+
+    // Remove user from community followers
+    community.followers.pull(req.user._id);
+    await community.save({ session });
+
+    // Update the user's communities field
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { communities: community._id } },
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+    res.status(200).json({ message: "Left community successfully" });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllCommunities,
   getCommunityById,
@@ -230,4 +272,5 @@ module.exports = {
   deleteCommunity,
   requestToJoinCommunity,
   approveJoinRequest,
+  leaveCommunity,
 };

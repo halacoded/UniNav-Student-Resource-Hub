@@ -9,13 +9,14 @@ const {
   deleteCommunity,
   requestToJoinCommunity,
   approveJoinRequest,
+  leaveCommunity,
 } = require("./Community.controller");
 const upload = require("../../middleware/multer");
 const passport = require("passport");
 const authenticate = passport.authenticate("jwt", { session: false });
 // Community routes
 communityRouter.get("/", getAllCommunities);
-communityRouter.get("/:id", getCommunityById);
+communityRouter.get("/:id", authenticate, getCommunityById);
 communityRouter.post(
   "/",
   authenticate,
@@ -33,5 +34,7 @@ communityRouter.delete("/:id", authenticate, deleteCommunity);
 // Join request routes
 communityRouter.post("/:id/request", authenticate, requestToJoinCommunity);
 communityRouter.post("/:id/approve/:userId", authenticate, approveJoinRequest);
+
+communityRouter.delete("/:id/leave", authenticate, leaveCommunity); // Added leaveCommunity route
 
 module.exports = communityRouter;

@@ -10,6 +10,7 @@ const commentSchema = new Schema(
     course: { type: Schema.Types.ObjectId, ref: "Course" },
     professor: { type: Schema.Types.ObjectId, ref: "Professor" },
     community: { type: Schema.Types.ObjectId, ref: "Community" },
+    chat: { type: Schema.Types.ObjectId, ref: "Chat" },
     content: {
       type: String,
       required: true,
@@ -28,7 +29,7 @@ const commentSchema = new Schema(
     },
     commentType: {
       type: String,
-      enum: ["course", "professor", "community"],
+      enum: ["course", "professor", "community", "chat"],
       required: true,
     },
   },

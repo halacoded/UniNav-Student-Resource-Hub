@@ -58,7 +58,7 @@ exports.signup = async (req, res, next) => {
       return res.status(500).json({ message: "Error hashing password" });
     }
 
-    const majorFound = await Major.findOne({name: major})
+    const majorFound = await Major.findOne({ name: major });
 
     // Create new user
     const user = new User({
@@ -103,6 +103,7 @@ exports.getMe = async (req, res, next) => {
       .populate("resources")
       .populate("bookmarks")
       .populate("awards")
+      .populate("Chats")
       .populate({
         path: "courses",
         populate: {

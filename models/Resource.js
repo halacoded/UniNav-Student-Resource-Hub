@@ -7,7 +7,6 @@ const resourceSchema = new Schema({
   resourceType: {
     type: Schema.Types.ObjectId,
     ref: "ResourceType",
-    required: true,
   },
   community: { type: Schema.Types.ObjectId, ref: "Community" },
   course: { type: Schema.Types.ObjectId, ref: "Course" },

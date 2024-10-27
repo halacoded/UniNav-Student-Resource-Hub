@@ -1,10 +1,10 @@
 const Comment = require("../../models/Comment");
 const Course = require("../../models/Course");
 const Professor = require("../../models/Professor");
-
 const Community = require("../../models/Community");
+const Chat = require("../../models/Chat");
 
-// Get all comments for a specific course, professor, or community
+// Get all comments for a specific course, professor, community, or chat
 exports.getComments = async (req, res, next) => {
   try {
     const { type, id } = req.params;
@@ -16,16 +16,18 @@ exports.getComments = async (req, res, next) => {
       filter.professor = id;
     } else if (type === "community") {
       filter.community = id;
+    } else if (type === "chat") {
+      filter.chat = id;
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
 
     const comments = await Comment.find(filter)
       .sort("-createdAt")
-      .populate("user", "username")
+      .populate("user", "username profileImage")
       .populate({
         path: "replies",
-        populate: { path: "user", select: "username" },
+        populate: { path: "user", select: "username profileImage" },
       });
 
     res.status(200).json(comments);
@@ -84,6 +86,20 @@ exports.createComment = async (req, res, next) => {
       await Community.findByIdAndUpdate(id, {
         $push: { comments: newComment._id },
       });
+    } else if (type === "chat") {
+      const chat = await Chat.findById(id);
+      if (!chat) {
+        return res.status(404).json({ message: "Chat not found" });
+      }
+      newComment = new Comment({
+        user: userId,
+        chat: id,
+        content,
+        commentType: "chat",
+      });
+      await Chat.findByIdAndUpdate(id, {
+        $push: { comments: newComment._id },
+      });
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
@@ -114,7 +130,7 @@ exports.deleteComment = async (req, res, next) => {
 
     await Comment.findByIdAndDelete(commentId);
 
-    // Update the course, professor, or community's comments array
+    // Update the course, professor, community, or chat's comments array
     if (comment.commentType === "course") {
       await Course.findByIdAndUpdate(comment.course, {
         $pull: { comments: commentId },
@@ -125,6 +141,10 @@ exports.deleteComment = async (req, res, next) => {
       });
     } else if (comment.commentType === "community") {
       await Community.findByIdAndUpdate(comment.community, {
+        $pull: { comments: commentId },
+      });
+    } else if (comment.commentType === "chat") {
+      await Chat.findByIdAndUpdate(comment.chat, {
         $pull: { comments: commentId },
       });
     }
@@ -160,6 +180,7 @@ exports.replyToComment = async (req, res, next) => {
       course: parentComment.course,
       professor: parentComment.professor,
       community: parentComment.community,
+      chat: parentComment.chat,
     });
 
     // Save the new reply
@@ -170,7 +191,7 @@ exports.replyToComment = async (req, res, next) => {
       $push: { replies: newReply._id },
     });
 
-    // Update the course, professor, or community's comments array
+    // Update the course, professor, community, or chat's comments array
     if (parentComment.commentType === "course") {
       await Course.findByIdAndUpdate(parentComment.course, {
         $push: { comments: newReply._id },
@@ -183,10 +204,14 @@ exports.replyToComment = async (req, res, next) => {
       await Community.findByIdAndUpdate(parentComment.community, {
         $push: { comments: newReply._id },
       });
+    } else if (parentComment.commentType === "chat") {
+      await Chat.findByIdAndUpdate(parentComment.chat, {
+        $push: { comments: newReply._id },
+      });
     }
 
     // Populate user information for the response
-    await newReply.populate("user", "username");
+    await newReply.populate("user", "username profileImage");
 
     res.status(201).json(newReply);
   } catch (error) {

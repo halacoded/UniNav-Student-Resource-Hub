@@ -2,16 +2,18 @@ const Resource = require("../../models/Resource");
 const Course = require("../../models/Course");
 const User = require("../../models/User");
 const Community = require("../../models/Community");
+const ResourceType = require("../../models/ResourceType");
 exports.createResource = async (req, res) => {
   try {
+    console.log(req.body);
     const { title, type, course, community } = req.body;
     const userId = req.user._id;
-    const url = req.file ? `/media/${req.file.filename}` : null;
+    const url = req.file ? `/media/${req.file.filename}` : req.body.url;
     const resourceTypeFound = await ResourceType.findOne({ name: type });
     const newResource = new Resource({
       title,
       url,
-      resourceType: resourceTypeFound._id,
+      ResourceType: resourceTypeFound._id,
       course,
       community,
       createdBy: userId,
