@@ -71,7 +71,11 @@ exports.signup = async (req, res, next) => {
     });
 
     await user.save();
-
+    await Major.findByIdAndUpdate(
+      majorFound._id,
+      { $push: { users: user._id } },
+      { new: true }
+    );
     // Generate token for the new user
     const token = generateToken(user);
 

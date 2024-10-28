@@ -7,15 +7,21 @@ exports.createResource = async (req, res) => {
   try {
     console.log(req.body);
     const { title, type, course, community } = req.body;
+    console.log(title, type, course, community);
     const userId = req.user._id;
     const url = req.file ? `/media/${req.file.filename}` : req.body.url;
-    const resourceTypeFound = await ResourceType.findOne({ name: type });
+    const resourceTypeFound = await ResourceType.findOne({
+      name: type,
+    });
+    const communityFound = await Community.findOne({ name: community });
+    const courseFound = await Course.findOne({ name: course });
+
     const newResource = new Resource({
       title,
       url,
-      ResourceType: resourceTypeFound._id,
-      course,
-      community,
+      ResourceType: resourceTypeFound?._id,
+      course: courseFound?._id,
+      community: communityFound?._id,
       createdBy: userId,
     });
 
@@ -33,6 +39,11 @@ exports.createResource = async (req, res) => {
     );
     await User.findByIdAndUpdate(
       userId,
+      { $push: { resources: newResource._id } },
+      { new: true }
+    );
+    await ResourceType.findByIdAndUpdate(
+      resourceTypeFound._id,
       { $push: { resources: newResource._id } },
       { new: true }
     );
