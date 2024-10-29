@@ -25,15 +25,16 @@ exports.createResource = async (req, res) => {
       createdBy: userId,
     });
 
+    console.log("new resource", newResource);
     await newResource.save();
 
     await Course.findByIdAndUpdate(
-      course,
+      courseFound?._id,
       { $push: { resources: newResource._id } },
       { new: true }
     );
     await Community.findByIdAndUpdate(
-      community,
+      communityFound?._id,
       { $push: { resources: newResource._id } },
       { new: true }
     );
