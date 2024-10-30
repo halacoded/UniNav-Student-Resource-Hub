@@ -40,7 +40,19 @@ exports.getAllChats = async (req, res) => {
         },
         select: "content createdAt",
       });
-    res.status(200).json(chats);
+
+    // Add last comment to each chat
+    const chatsWithLastComment = chats.map((chat) => {
+      const lastComment = chat.comments.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      )[0]; // Get the last comment
+      return {
+        ...chat.toObject(), // Convert chat to plain object
+        lastComment: lastComment || null, // Add last comment or null if no comments
+      };
+    });
+
+    res.status(200).json(chatsWithLastComment);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

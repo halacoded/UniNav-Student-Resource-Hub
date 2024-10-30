@@ -107,7 +107,23 @@ exports.getMe = async (req, res, next) => {
       .populate("resources")
       .populate("bookmarks")
       .populate("awards")
-      .populate("Chats")
+      .populate({
+        path: "Chats",
+        populate: [
+          {
+            path: "comments",
+            populate: {
+              path: "user",
+              select: "username profileImage",
+            },
+            select: "content createdAt",
+          },
+          {
+            path: "participants",
+            select: "username profileImage", // Add this line to populate participants with profileImage
+          },
+        ],
+      })
       .populate({
         path: "courses",
         populate: {
@@ -136,9 +152,9 @@ exports.getAllUsers = async (req, res, next) => {
       query.username = { $regex: username, $options: "i" }; // Case-insensitive search
     }
 
-    const users = await User.find(query)
-      .select("username email profileImage backgroundImage")
-      .limit(10); // Limit the number of results
+    const users = await User.find(query).select(
+      "username email profileImage backgroundImage"
+    );
 
     res.status(200).json(users);
   } catch (error) {
