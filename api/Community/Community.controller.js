@@ -19,7 +19,7 @@ const getCommunityById = async (req, res) => {
     const community = await Community.findById(req.params.id).populate(
       "createdBy resources course followers"
     );
-    console.log(community);
+
     if (!community) {
       return res.status(404).json({ error: "Community not found" });
     }

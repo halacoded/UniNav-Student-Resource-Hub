@@ -60,7 +60,11 @@ exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
       .populate("users")
-      .populate("professor");
+      .populate("professor")
+      .populate("major")
+      .populate("resources")
+      .populate("comments.user")
+      .populate("ratings.user");
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }

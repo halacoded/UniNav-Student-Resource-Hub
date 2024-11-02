@@ -17,6 +17,7 @@ const UserSchema = new Schema(
     awards: [{ type: String }],
     major: { type: Schema.Types.ObjectId, ref: "Major" },
     Chats: [{ type: Schema.Types.ObjectId, ref: "Chat" }],
+    notifications: [{ type: Schema.Types.ObjectId, ref: "Notification" }],
   },
   { timestamps: true }
 );

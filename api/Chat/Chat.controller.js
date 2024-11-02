@@ -1,6 +1,7 @@
 const Chat = require("../../models/Chat");
 const Comment = require("../../models/Comment");
 const User = require("../../models/User");
+const { notifyNewMessage } = require("../Notification/Notification.controller");
 // Create a new chat
 exports.createChat = async (req, res) => {
   try {
@@ -18,7 +19,10 @@ exports.createChat = async (req, res) => {
       { _id: { $in: participantIds } },
       { $push: { Chats: savedChat._id } }
     );
-
+    // Notify participants about the new chat
+    for (const participant of participantIds) {
+      await notifyNewMessage(savedChat._id, participant);
+    }
     res.status(201).json(savedChat);
   } catch (error) {
     res.status(500).json({ message: error.message });

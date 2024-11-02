@@ -421,3 +421,85 @@ const checkAndAddAward = async (user) => {
     throw error; // Rethrow the error to be caught by the calling function
   }
 };
+exports.getUserById = async (req, res, next) => {
+  try {
+    console.log("Fetching user with ID:", req.params.userID); // Log the user ID
+    const user = await User.findById(req.params.userID)
+      .populate("followers", "username email profileImage backgroundImage")
+      .populate("following", "username email profileImage backgroundImage")
+      .populate("communities")
+      .populate("resources")
+      .populate("bookmarks")
+      .populate("awards")
+      .populate({
+        path: "Chats",
+        populate: [
+          {
+            path: "comments",
+            populate: {
+              path: "user",
+              select: "username profileImage",
+            },
+            select: "content createdAt",
+          },
+          {
+            path: "participants",
+            select: "username profileImage",
+          },
+        ],
+      })
+      .populate({
+        path: "courses",
+        populate: {
+          path: "professor",
+          select: "name profileImage",
+        },
+      });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+// Follow/Unfollow Section *************************************************************************
+exports.toggleFollowUser = async (req, res, next) => {
+  try {
+    const userToToggle = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user.id);
+
+    if (!userToToggle || !currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isFollowing = currentUser.following.includes(userToToggle._id);
+
+    if (isFollowing) {
+      // Unfollow the user
+      await User.findByIdAndUpdate(req.user.id, {
+        $pull: { following: userToToggle._id },
+      });
+      await User.findByIdAndUpdate(req.params.id, {
+        $pull: { followers: currentUser._id },
+      });
+      return res.status(200).json({ message: "User unfollowed successfully" });
+    } else {
+      // Follow the user
+      await User.findByIdAndUpdate(req.user.id, {
+        $push: { following: userToToggle._id },
+      });
+      await User.findByIdAndUpdate(req.params.id, {
+        $push: { followers: currentUser._id },
+      });
+      return res.status(200).json({ message: "User followed successfully" });
+    }
+  } catch (error) {
+    console.error("Toggle follow user error:", error);
+    res
+      .status(500)
+      .json({ message: "Error toggling follow status", error: error.message });
+  }
+};

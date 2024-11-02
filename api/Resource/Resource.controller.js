@@ -3,6 +3,9 @@ const Course = require("../../models/Course");
 const User = require("../../models/User");
 const Community = require("../../models/Community");
 const ResourceType = require("../../models/ResourceType");
+const {
+  notifyNewResource,
+} = require("../Notification/Notification.controller");
 exports.createResource = async (req, res) => {
   try {
     console.log(req.body);
@@ -48,7 +51,12 @@ exports.createResource = async (req, res) => {
       { $push: { resources: newResource._id } },
       { new: true }
     );
-
+    // Notify users about the new resource
+    await notifyNewResource(
+      newResource._id,
+      communityFound?._id,
+      courseFound?._id
+    );
     res.status(201).json({
       message: "Resource created successfully",
       resource: newResource,

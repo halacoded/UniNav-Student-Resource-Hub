@@ -23,6 +23,7 @@ const communityRouter = require("./api/Community/Community.router.js");
 const MajorRouter = require("./api/Major/Major.routes.js");
 const ResourceTypeRouter = require("./api/ResourceType/ResourceType.router.js");
 const chatRouter = require("./api/Chat/Chat.router.js");
+const notificationRoutes = require("./api/Notification/Notification.router.js");
 //init
 const PORT = process.env.PORT || 80000;
 dotenv.config();
@@ -47,6 +48,7 @@ app.use("/api/community", communityRouter);
 app.use("/api/major", MajorRouter);
 app.use("/api/resourceType", ResourceTypeRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/notifications", notificationRoutes);
 app.use("/media", express.static(path.join(__dirname, "media")));
 // Not Found Handling middleware
 

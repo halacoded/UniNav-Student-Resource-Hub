@@ -12,6 +12,8 @@ const {
   getFollowing,
   addBookmark,
   removeBookmark,
+  getUserById,
+  toggleFollowUser,
 } = require("./User.controller");
 const passport = require("passport");
 const upload = require("../../middleware/multer");
@@ -38,6 +40,12 @@ usersRouter.put(
   ]),
   updateUser
 );
+usersRouter.post(
+  "/:id/follow",
+  passport.authenticate("jwt", { session: false }),
+  toggleFollowUser
+);
+
 // Follow routes
 usersRouter.post("/:id/follow", authenticate, followUser);
 usersRouter.post("/:id/unfollow", authenticate, unfollowUser);
@@ -47,5 +55,5 @@ usersRouter.get("/:id/following", getFollowing);
 // Bookmark routes
 usersRouter.post("/bookmarks/:resourceId", authenticate, addBookmark);
 usersRouter.delete("/bookmarks/:resourceId", authenticate, removeBookmark);
-
+usersRouter.get("/:userID", authenticate, getUserById);
 module.exports = usersRouter;

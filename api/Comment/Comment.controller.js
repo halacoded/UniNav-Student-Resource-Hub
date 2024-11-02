@@ -3,7 +3,7 @@ const Course = require("../../models/Course");
 const Professor = require("../../models/Professor");
 const Community = require("../../models/Community");
 const Chat = require("../../models/Chat");
-
+const { notifyNewMessage } = require("../Notification/Notification.controller");
 // Get all comments for a specific course, professor, community, or chat
 exports.getComments = async (req, res, next) => {
   try {
@@ -36,6 +36,7 @@ exports.getComments = async (req, res, next) => {
   }
 };
 
+// Create a new comment
 // Create a new comment
 exports.createComment = async (req, res, next) => {
   try {
@@ -100,6 +101,9 @@ exports.createComment = async (req, res, next) => {
       await Chat.findByIdAndUpdate(id, {
         $push: { comments: newComment._id },
       });
+
+      // Notify users about the new message
+      await notifyNewMessage(id, userId);
     } else {
       return res.status(400).json({ message: "Invalid type" });
     }
@@ -107,7 +111,8 @@ exports.createComment = async (req, res, next) => {
     await newComment.save();
     res.status(201).json(newComment);
   } catch (error) {
-    next(error);
+    console.error("Error creating comment:", error);
+    res.status(500).json({ message: "Internal server error", error });
   }
 };
 
