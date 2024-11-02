@@ -5,7 +5,7 @@ const saltRounds = 10;
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Major = require("../../models/Major");
-
+const Course = require("../../models/Course");
 dotenv.config();
 const hashPassword = async (password) => {
   try {
@@ -171,7 +171,7 @@ exports.updateUser = async (req, res, next) => {
 
     const userId = req.user._id; // Get the user ID from the authenticated user
 
-    const { username, email, major } = req.body;
+    const { username, email, major, courses } = req.body;
 
     const user = await User.findById(userId);
 
@@ -197,14 +197,7 @@ exports.updateUser = async (req, res, next) => {
       }
       user.username = username;
     }
-    if (req.body.courses) {
-      const course = await Course.updateMany(
-        { _id: { $in: req.body.courses } },
-        { $push: { users: user._id } }
-      );
 
-      user.courses = req.body.courses;
-    }
     // Handle email update
     if (email && email !== user.email) {
       const existingEmail = await User.findOne({ email });
@@ -216,6 +209,16 @@ exports.updateUser = async (req, res, next) => {
 
     // Update other fields
     if (major) user.major = major;
+
+    // Handle courses update
+    if (courses) {
+      const courseUpdateResult = await Course.updateMany(
+        { _id: { $in: courses } },
+        { $push: { users: user._id } }
+      );
+      console.log("Course update result:", courseUpdateResult);
+      user.courses = courses;
+    }
 
     await user.save();
 
