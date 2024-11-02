@@ -197,7 +197,14 @@ exports.updateUser = async (req, res, next) => {
       }
       user.username = username;
     }
+    if (req.body.courses) {
+      const course = await Course.updateMany(
+        { _id: { $in: req.body.courses } },
+        { $push: { users: user._id } }
+      );
 
+      user.courses = req.body.courses;
+    }
     // Handle email update
     if (email && email !== user.email) {
       const existingEmail = await User.findOne({ email });

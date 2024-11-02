@@ -90,7 +90,10 @@ exports.getResourceById = async (req, res) => {
       .populate("course")
       .populate("community")
       .populate("likes", "username email")
-      .populate("dislikes", "username email");
+      .populate("dislikes", "username email")
+      .populate("createdBy", "username email")
+      .populate("major", "name")
+      .populate("resourceType", "name");
     if (!resource) {
       return res.status(404).json({ message: "Resource not found" });
     }
