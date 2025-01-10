@@ -1,5 +1,5 @@
 # UniNav: Student Resource Hub
-![Display](Logo-landingpage.jpeg)
+<img src="Logo-landingpage.jpeg" alt="Display" width="600"/>
 
 ## Description
 **UniNav** is a comprehensive student resource platform designed to help students discover, share, and collaborate on study materials, as well as connect with peers.
@@ -29,11 +29,11 @@
 ## Showcase Images
 Here are some images showcasing our platform:
 
-![Chat with other Students](ChatwithotherStudent.jpeg)
-![Community](Comunity.jpeg)
-![Explore Screen](Exploer-Screen_ex2.jpeg)
-![Text Chat](Fahim-Textchat.jpeg)
-![AI Bot Screen](Fahim-aiBot-Screen.jpeg)
+<img src="ChatwithotherStudent.jpeg" alt="Chat with other Students" width="600"/>
+<img src="Comunity.jpeg" alt="Community" width="600"/>
+<img src="Exploer-Screen_ex2.jpeg" alt="Explore Screen" width="600"/>
+<img src="Fahim-Textchat.jpeg" alt="Text Chat" width="600"/>
+<img src="Fahim-aiBot-Screen.jpeg" alt="AI Bot Screen" width="600"/>
 
 ## Contributors
 - Hala Almutairi
