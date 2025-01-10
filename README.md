@@ -29,11 +29,15 @@
 ## Showcase Application
 Here are some images showcasing our App:
 
-<img src="ChatwithotherStudent.jpeg" alt="Chat with other Students" width="200"/>
-<img src="Comunity.jpeg" alt="Community" width="200"/>
-<img src="Exploer-Screen_ex2.jpeg" alt="Explore Screen" width="200"/>
-<img src="Fahim-Textchat.jpeg" alt="Text Chat" width="200"/>
-<img src="Fahim-aiBot-Screen.jpeg" alt="AI Bot Screen" width="200"/>
+<div style="display: flex; justify-content: space-around;">
+    <img src="ChatwithotherStudent.jpeg" alt="Chat with other Students" width="200"/>
+    <img src="Comunity.jpeg" alt="Community" width="200"/>
+    <img src="Exploer-Screen_ex2.jpeg" alt="Explore Screen" width="200"/>
+</div>
+<div style="display: flex; justify-content: space-around;">
+    <img src="Fahim-Textchat.jpeg" alt="Text Chat" width="200"/>
+    <img src="Fahim-aiBot-Screen.jpeg" alt="AI Bot Screen" width="200"/>
+</div>
 
 ## Contributors
 - Hala Almutairi
