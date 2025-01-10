@@ -24,7 +24,7 @@
 - MongoDB
 
 ## Frontend GitHub
-- [Frontend Repository](https://github.com/your-repo-link)
+- [Frontend Repository](https://github.com/Dalalalhoshan/UniNav_App)
 
 ## Showcase Application
 Here are some images showcasing our App:
