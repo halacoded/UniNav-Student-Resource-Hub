@@ -1,4 +1,4 @@
-# UniNav: Student Resource Hub
+# UniNav: Student Resource Hub (BACKEND)
 <img src="Logo-landingpage.jpeg" alt="Display" width="200"/>
 
 ## Description
